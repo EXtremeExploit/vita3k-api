@@ -24,7 +24,7 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 	### Locally
 	* Setup the databse schema: `wrangler d1 execute <database_name> --local --file=./schema.sql`
 	* run `wrangler dev --test-scheduled`
-		### CRON JOB WONT WORK, YOU WILL HAVE TO RUN IT YOURSELF (`localhost:XXXXX/__scheduled?cron=*/5%20*%20*%20*%20*`)
+		### CRON JOB WONT WORK, YOU WILL HAVE TO TRIGGER IT YOURSELF (`localhost:XXXXX/__scheduled?cron=*/5%20*%20*%20*%20*`)
 	### Online Cloudflare worker
 	* Setup the databse schema: `wrangler d1 execute <database_name> --file=./schema.sql`
 	* run `npx wrangler deploy`
