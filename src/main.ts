@@ -19,7 +19,7 @@ export default {
 				const list = await GetGithubIssues(env, type);
 				LOG(`Github list ${type} has ${list.length} entries`);
 
-				let cachedList = (await env.DB.prepare(`SELECT * FROM list WHERE type = ?`).bind(type).all()).results as GameEntry[];
+				let cachedList = (await env.DB.prepare(`SELECT \`name\`,\`titleId\`,\`status\`,\`color\`,\`issueId\` FROM list WHERE type = ?`).bind(type).all()).results as GameEntry[];
 				cachedList.sort((a, b) => (a.titleId.toLowerCase() < b.titleId.toLowerCase()) ? -1 : 1);
 				list.sort((a, b) => (a.titleId.toLowerCase() < b.titleId.toLowerCase()) ? -1 : 1);
 
