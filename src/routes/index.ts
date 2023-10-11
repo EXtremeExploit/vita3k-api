@@ -1,6 +1,6 @@
-import { Env } from "./utils";
+import { Env } from "../utils";
 
-export async function index(_env: Env, req: Request, _match: URLPatternURLPatternResult, _ip: string) {
+export default async function(_env: Env, req: Request, _match: URLPatternURLPatternResult) {
 	if (req.method != 'GET') {
 		return Response.json("Method not allowed", {
 			status: 405

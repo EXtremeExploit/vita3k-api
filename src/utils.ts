@@ -22,7 +22,7 @@ export function LOG(txt: string) {
 
 export async function updateTimestamp(env: Env, list: string): Promise<void> {
 	await env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?) ON CONFLICT(name) DO UPDATE SET timestamp = ?')
-		.bind(list, UNIXTime(), UNIXTime());
+		.bind(list, UNIXTime(), UNIXTime()).run();
 
 	// await env.DB.batch([
 	// 	env.DB.prepare('DELETE FROM timestamps WHERE name = ?').bind(list),
