@@ -137,21 +137,13 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 
 	const ACCESS_TOKEN = env.ACCESS_TOKEN;
 
-	let numPagesReq;
-	if (typeof ACCESS_TOKEN !== 'undefined') {
-		numPagesReq = await fetch(`https://api.github.com/repos/Vita3K/${ghlist}`, {
-			headers: {
-				"Authorization": `Bearer ${ACCESS_TOKEN}`,
-				"User-Agent": "Vita3K API Worker"
-			}
-		});
-	} else {
-		numPagesReq = await fetch(`https://api.github.com/repos/Vita3K/${ghlist}`, {
-			headers: {
-				"User-Agent": "Vita3K API Worker"
-			}
-		});
-	}
+	const numPagesReq = await fetch(`https://api.github.com/repos/Vita3K/${ghlist}`, {
+		headers: {
+			'Authorization': `Bearer ${ACCESS_TOKEN}`,
+			'User-Agent': 'Vita3K API Worker'
+		}
+	});
+
 	const numPagesJson: any = await numPagesReq.json();
 	const numberOfEntries = numPagesJson.open_issues_count;
 	const numberOfPages = Math.ceil(numberOfEntries / PER_PAGE);
@@ -162,8 +154,8 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 	for (let i = 1; i <= numberOfPages; i++) {
 		fetches.push(fetch(`https://api.github.com/repos/Vita3K/${ghlist}/issues?state=open&page=${i}&per_page=${PER_PAGE}`, {
 			headers: {
-				"Authorization": `Bearer ${ACCESS_TOKEN}`,
-				"User-Agent": "Vita3K API Worker"
+				'Authorization': `Bearer ${ACCESS_TOKEN}`,
+				'User-Agent': 'Vita3K API Worker'
 			}
 		}).then(r => r.json() as Promise<IssueElement[]>));
 	};
