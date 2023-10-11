@@ -10,5 +10,7 @@ crons = ["*/5 * * * *"]
 # ACCESS_TOKEN = "github access token"
 
 
-#[[d1_databases]]
-# empty
+[[d1_databases]]
+binding = "DB"
+database_name = "vita3k-api"
+database_id = "2452c369-1d24-4bc9-9994-029c71619ca3"
