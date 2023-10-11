@@ -1,9 +1,9 @@
 import { router } from './route';
 import { GetGithubIssues, LOG, updateTimestamp } from './utils';
-import { Env, GameEntry } from './types';
+import { Env, GameEntry, ListInfo } from './types';
 
 export default {
-	async fetch(request: Request, env: Env) {
+	async fetch(request: Request, env: Env, ctx: any) {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 		return await router(env, request);
@@ -14,17 +14,18 @@ export default {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
-		const lists = ['commercial'];
+		const listInfos = (await env.DB.prepare('SELECT * FROM list_info').all()).results as unknown as ListInfo[];
 
-		for (const type of lists) {
-			LOG(`Caching ${type} list...`);
+		// Update the list of every list in the list_info table
+		for (const list of listInfos) {
+			LOG(`Caching ${list.name} (${list.githubName}) list...`);
 
 			const [ghList, cachedListResult, _] = await Promise.all([
-				GetGithubIssues(env, type),
-				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC, issueId ASC').bind(type).all(),
-				updateTimestamp(env, type)
+				GetGithubIssues(env, list.githubName),
+				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC, issueId ASC').bind(list.name).all(),
+				updateTimestamp(env, list)
 			]);
-			LOG(`Github list ${type} has ${ghList.length} entries`);
+			LOG(`Github list ${list.name} has ${ghList.length} entries`);
 
 			const cachedList = cachedListResult.results as unknown as GameEntry[];
 
@@ -59,10 +60,10 @@ export default {
 			}
 
 			const batch: D1PreparedStatement[] = [];
-			batch.push(env.DB.prepare('DELETE FROM list WHERE type = ?').bind(type));
+			batch.push(env.DB.prepare('DELETE FROM list WHERE type = ?').bind(list.name));
 			ghList.forEach((e) => {
 				batch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
-					.bind(type, e.name, e.titleId, e.status, e.color, e.issueId));
+					.bind(list.name, e.name, e.titleId, e.status, e.color, e.issueId));
 			});
 			await env.DB.batch(batch);
 		}

@@ -1,8 +1,3 @@
-export type Timestamp = {
-    name: string;
-    timestamp: number;
-}
-
 export interface Env {
     // If you set another name in wrangler.toml as the value for 'binding',
     // replace "DB" with the variable name you defined.
@@ -16,6 +11,14 @@ export interface GameEntry {
     status: string;
     color: string;
     issueId: number;
+}
+
+export type GHListName = `${string}/${string}`;
+
+export interface ListInfo {
+    name: string;
+    githubName: GHListName;
+    timestamp: number;
 }
 
 export interface IssueElement {

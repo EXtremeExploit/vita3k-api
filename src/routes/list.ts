@@ -1,4 +1,4 @@
-import { Env, GameEntry, Timestamp } from '../types';
+import { Env, GameEntry, ListInfo } from '../types';
 
 export default async function (env: Env, req: Request, match: URLPatternURLPatternResult): Promise<Response> {
 	if (req.method != 'GET') {
@@ -9,19 +9,16 @@ export default async function (env: Env, req: Request, match: URLPatternURLPatte
 		return Response.json('invalid list type', { status: 400 });
 	}
 
-	if (match.pathname.groups.type !== 'homebrew' && match.pathname.groups.type !== 'commercial') {
+	const listInfos = (await env.DB.prepare('SELECT * FROM list_info').all()).results as unknown as ListInfo[];
+	const listInfo = listInfos.find((l) => l.name == match.pathname.groups.type);
+	if (typeof listInfo == 'undefined')
 		return Response.json('invalid list type', { status: 400 });
-	}
 
-	const [listResult, timestampResult] = await env.DB.batch([
-		env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ?').bind(match.pathname.groups.type),
-		env.DB.prepare('SELECT timestamp FROM timestamps WHERE name = ?').bind(match.pathname.groups.type)
-	]);
+	const listResult = await env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ?').bind(listInfo.name).all();
 
-	const list = listResult.results as GameEntry[];
+	const list = listResult.results as unknown as GameEntry[];
 
-	const date = (timestampResult.results as Timestamp[])[0].timestamp;
-	return Response.json({ date: date, list: list }, {
+	return Response.json({ date: listInfo.timestamp, list: list }, {
 		status: 200, headers: {
 			'content-type': 'application/json; charset=utf-8',
 			'Access-Control-Allow-Origin': '*'

@@ -1,4 +1,4 @@
-import { Env, GameEntry, IssueElement } from "./types";
+import { Env, GHListName, GameEntry, IssueElement, ListInfo } from "./types";
 
 const STATUS_LABELS = ['Playable', 'Ingame +', 'Ingame -', 'Menu', 'Intro', 'Bootable', 'Nothing'];
 
@@ -24,32 +24,17 @@ export function LOG(txt: string) {
 	console.log(`${GetLogDate()} | ${txt}`);
 }
 
-export async function updateTimestamp(env: Env, list: string): Promise<void> {
-	await env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?) ON CONFLICT(name) DO UPDATE SET timestamp = ?')
-		.bind(list, UNIXTime(), UNIXTime()).run();
+export async function updateTimestamp(env: Env, list: ListInfo): Promise<void> {
+	await env.DB.prepare('UPDATE list_info SET timestamp = ? WHERE name = ?')
+		.bind(UNIXTime(), list.name).run();
 }
 
 
-export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry[]> {
+export async function GetGithubIssues(env: Env, ghlist: GHListName): Promise<GameEntry[]> {
 	const PER_PAGE = 100;
-
-	let ghlist = '';
-	switch (list) {
-		case 'commercial':
-			ghlist = 'compatibility'
-			break;
-		case 'homebrew':
-			ghlist = 'homebrew-compatibility'
-			break;
-
-		default:
-			LOG(`Invalid list ${list}`);
-			return [];
-	}
-
 	const ACCESS_TOKEN = env.ACCESS_TOKEN;
 
-	const numPagesReq = await fetch(`https://api.github.com/repos/Vita3K/${ghlist}`, {
+	const numPagesReq = await fetch(`https://api.github.com/repos/${ghlist}`, {
 		headers: {
 			'Authorization': `Bearer ${ACCESS_TOKEN}`,
 			'User-Agent': 'Vita3K API Worker'
@@ -62,7 +47,7 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 
 	const fetches: Promise<IssueElement[]>[] = [];
 	for (let i = 1; i <= numberOfPages; i++) {
-		fetches.push(fetch(`https://api.github.com/repos/Vita3K/${ghlist}/issues?state=open&page=${i}&per_page=${PER_PAGE}`, {
+		fetches.push(fetch(`https://api.github.com/repos/${ghlist}/issues?state=open&page=${i}&per_page=${PER_PAGE}`, {
 			headers: {
 				'Authorization': `Bearer ${ACCESS_TOKEN}`,
 				'User-Agent': 'Vita3K API Worker'
@@ -70,7 +55,7 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 		}).then(r => r.json() as Promise<IssueElement[]>));
 	};
 
-	LOG(`Waiting for ${fetches.length} requests of list ${list} (gh: ${ghlist}) to return...`);
+	LOG(`Waiting for ${fetches.length} requests of list ${ghlist} to return...`);
 	const pages = await Promise.all(fetches);
 
 	const issuesList: GameEntry[] = [];

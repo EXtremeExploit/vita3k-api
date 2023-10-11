@@ -8,8 +8,9 @@ CREATE TABLE `list` (
   `issueId` INTEGER PRIMARY KEY DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS `timestamps`;
-CREATE TABLE `timestamps` (
-  `name` tinytext PRIMARY KEY NOT NULL,
+DROP TABLE IF EXISTS `list_info`;
+CREATE TABLE `list_info` (
+  `name` varchar(64) PRIMARY KEY NOT NULL, -- What the api provides
+  `githubName` varchar(128) NOT NULL, -- Used internally to get github issues
   `timestamp` INTEGER NOT NULL DEFAULT 0
 );

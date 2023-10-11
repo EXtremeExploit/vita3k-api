@@ -5,13 +5,15 @@ interface Route {
 	handler: (env: Env, req: Request, match: URLPatternURLPatternResult) => Promise<Response>; // handler to handle request
 }
 
-import index  from './routes/index';
-import ping from './routes/ping';
+import index from './routes/index';
 import list from './routes/list';
+import lists from './routes/lists';
+import ping from './routes/ping';
 
 const routes: Route[] = [
 	{ name: 'index', path: '/', handler: index },
 	{ name: 'list', path: '/list/:type', handler: list },
+	{ name: 'lists', path: '/lists', handler: lists },
 	{ name: 'ping', path: '/ping', handler: ping },
 ];
 
@@ -21,5 +23,5 @@ export async function router(env: Env, req: Request) {
 		const match = reg.exec(req.url);
 		if (match) return await route.handler(env, req, match);
 	}
-	return Response.json('404! Page Not Found!', { status: 404 })
+	return Response.json('404! Page Not Found!', { status: 404 });
 }
