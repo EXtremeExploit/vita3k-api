@@ -27,11 +27,6 @@ export function LOG(txt: string) {
 export async function updateTimestamp(env: Env, list: string): Promise<void> {
 	await env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?) ON CONFLICT(name) DO UPDATE SET timestamp = ?')
 		.bind(list, UNIXTime(), UNIXTime()).run();
-
-	// await env.DB.batch([
-	// 	env.DB.prepare('DELETE FROM timestamps WHERE name = ?').bind(list),
-	// 	env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?)').bind(list, UNIXTime())
-	// ]);
 }
 
 
@@ -65,9 +60,7 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 	const numberOfEntries = numPagesJson.open_issues_count;
 	const numberOfPages = Math.ceil(numberOfEntries / PER_PAGE);
 
-
 	const fetches: Promise<IssueElement[]>[] = [];
-
 	for (let i = 1; i <= numberOfPages; i++) {
 		fetches.push(fetch(`https://api.github.com/repos/Vita3K/${ghlist}/issues?state=open&page=${i}&per_page=${PER_PAGE}`, {
 			headers: {
@@ -80,9 +73,10 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 	LOG(`Waiting for ${fetches.length} requests of list ${list} (gh: ${ghlist}) to return...`);
 	const pages = await Promise.all(fetches);
 
-
 	const issuesList: GameEntry[] = [];
 	const regexp = new RegExp(`^(?<title>.*) \\[(?<id>.*)\\]$`);
+
+	const millisStart = Date.now();
 	for (const page of pages) {
 		for (const issue of page) {
 			const matches = regexp.exec(issue.title);
@@ -105,17 +99,18 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 				}
 			}
 
-			const issueId = issue.number;
-			const issueElement = {
+			const issueElement: GameEntry = {
 				name: title,
-				titleId,
-				status,
-				color,
-				issueId
-			}
+				titleId: titleId,
+				status: status,
+				color: color,
+				issueId: issue.number
+			};
 			issuesList.push(issueElement);
 		}
 	}
+	const millisEnd = Date.now();
+	LOG(`Processed ${issuesList.length} issues in ${millisEnd - millisStart}ms`);
 
 	return issuesList;
 }
