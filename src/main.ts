@@ -22,7 +22,7 @@ export default {
 
 			const [ghList, cachedListResult] = await Promise.all([
 				GetGithubIssues(env, type),
-				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? SORT BY titleId ASC, issueId ASC').bind(type).all()
+				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC, issueId ASC').bind(type).all()
 			]);
 			LOG(`Github list ${type} has ${ghList.length} entries`);
 
