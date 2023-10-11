@@ -14,7 +14,6 @@ export async function list(env: Env, req: Request, match: URLPatternURLPatternRe
 	}
 
 	let date = 0;
-	LOG('we are rate limited, using cached list');
 	// We may get rate limited, use the cache
 	let list = (await env.DB.prepare(`SELECT * FROM list WHERE type = ?`).bind(match.pathname.groups.type).all()).results as GameEntry[];
 	const timestamp = (await env.DB.prepare('SELECT timestamp FROM timestamps WHERE name = ?').bind(match.pathname.groups.type).all()).results as Timestamp[];

@@ -20,11 +20,14 @@ export function LOG(txt: string) {
 	console.log(`${GetLogDate()} | ${txt}`);
 }
 
-export async function updateRateLimit(env: Env, list: string): Promise<void> {
-	await env.DB.batch([
-		env.DB.prepare('DELETE FROM timestamps WHERE name = ?').bind(list),
-		env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?)').bind(list, UNIXTime())
-	]);
+export async function updateTimestamp(env: Env, list: string): Promise<void> {
+	await env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?) ON CONFLICT(name) DO UPDATE SET timestamp = ?')
+		.bind(list, UNIXTime(), UNIXTime());
+
+	// await env.DB.batch([
+	// 	env.DB.prepare('DELETE FROM timestamps WHERE name = ?').bind(list),
+	// 	env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?)').bind(list, UNIXTime())
+	// ]);
 }
 
 export type Timestamp = {
@@ -157,7 +160,6 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 	const fetches: Promise<IssueElement[]>[] = [];
 
 	for (let i = 1; i <= numberOfPages; i++) {
-		LOG(`Getting page ${i}`);
 		fetches.push(fetch(`https://api.github.com/repos/Vita3K/${ghlist}/issues?state=open&page=${i}&per_page=${PER_PAGE}`, {
 			headers: {
 				"Authorization": `Bearer ${ACCESS_TOKEN}`,
@@ -168,7 +170,6 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 
 	LOG(`Waiting for ${fetches.length} requests of list ${list} (gh: ${ghlist}) to return...`);
 	const pages = await Promise.all(fetches);
-	LOG(`${fetches.length} requests returned :D`);
 
 
 	const issuesList: GameEntry[] = [];
@@ -207,9 +208,6 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 		}
 	}
 
-	console.log(JSON.stringify(pages[0][0]));
-
-	LOG(`Issues processed, there are ${issuesList.length} entries`);
 	return issuesList;
 }
 
