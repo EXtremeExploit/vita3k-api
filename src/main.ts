@@ -18,11 +18,11 @@ export default {
 
 		for (const type of lists) {
 			LOG(`Caching ${type} list...`);
-			await updateTimestamp(env, type);
 
-			const [ghList, cachedListResult] = await Promise.all([
+			const [ghList, cachedListResult, _] = await Promise.all([
 				GetGithubIssues(env, type),
-				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC, issueId ASC').bind(type).all()
+				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC, issueId ASC').bind(type).all(),
+				updateTimestamp(env, type)
 			]);
 			LOG(`Github list ${type} has ${ghList.length} entries`);
 
