@@ -1,4 +1,4 @@
-import { Env } from './utils';
+import { Env } from './types';
 interface Route {
 	name: string; // name of the route, just for tracking
 	path: string; // path pattern for handler

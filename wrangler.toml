@@ -2,15 +2,13 @@ name = "vita3k-api"
 main = "src/main.ts"
 compatibility_date = "2023-10-02"
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 # github access token goes here
 [vars]
 # ACCESS_TOKEN = "github access token"
 
-[triggers]
-crons = ["*/5 * * * *"]
 
-
-[[d1_databases]]
-binding = "DB"
-database_name = "database name"
-database_id = "database uuid"
+#[[d1_databases]]
+# empty

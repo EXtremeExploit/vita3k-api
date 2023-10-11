@@ -1,7 +1,8 @@
 import lodash from 'lodash';
 
 import { router } from './route';
-import { Env, GameEntry, GetGithubIssues, LOG, updateTimestamp } from './utils';
+import { GetGithubIssues, LOG, updateTimestamp } from './utils';
+import { Env, GameEntry } from './types';
 
 export default {
 	async fetch(request: Request, env: Env) {
@@ -23,11 +24,11 @@ export default {
 			const list = await GetGithubIssues(env, type);
 			LOG(`Github list ${type} has ${list.length} entries`);
 
-			let cachedList = (await env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC').bind(type).all()).results as GameEntry[];
+			let cachedList = (await env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC').bind(type).all()).results as unknown as GameEntry[];
 			// Only sort the github issues list as the cached list is already sorted by the query
 			list.sort((a, b) => (a.titleId.toLowerCase() < b.titleId.toLowerCase()) ? -1 : 1);
 
-			const areEqual = lodash.isEqual(list,cachedList)
+			const areEqual = lodash.isEqual(list, cachedList)
 			if (areEqual) {
 				LOG('Lists are equal, nothing to do');
 				return;

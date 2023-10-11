@@ -1,3 +1,7 @@
+import { Env, GameEntry, IssueElement } from "./types";
+
+const STATUS_LABELS = ['Playable', 'Ingame +', 'Ingame -', 'Menu', 'Intro', 'Bootable', 'Nothing'];
+
 export function UNIXTime(): number {
 	const secondsSinceUNIX = Math.floor(new Date().getTime() / 1000);
 	return secondsSinceUNIX;
@@ -28,93 +32,6 @@ export async function updateTimestamp(env: Env, list: string): Promise<void> {
 	// 	env.DB.prepare('DELETE FROM timestamps WHERE name = ?').bind(list),
 	// 	env.DB.prepare('INSERT INTO timestamps (name,timestamp) VALUES (?,?)').bind(list, UNIXTime())
 	// ]);
-}
-
-export type Timestamp = {
-	name: string;
-	timestamp: number;
-}
-
-const STATUS_LABELS = ['Playable', 'Ingame +', 'Ingame -', 'Menu', 'Intro', 'Bootable', 'Nothing'];
-
-export type GameEntry = {
-	name: string;
-	titleId: string;
-	status: string;
-	color: string;
-	issueId: number;
-}
-
-export type IssueElement = {
-	url: string;
-	repository_url: string;
-	labels_url: string;
-	comments_url: string;
-	events_url: string;
-	html_url: string;
-	id: number;
-	node_id: string;
-	number: number;
-	title: string;
-	user: User;
-	labels?: (LabelsEntity)[] | null;
-	state: string;
-	locked: boolean;
-	assignee?: null;
-	assignees?: (null)[] | null;
-	milestone?: null;
-	comments: number;
-	created_at: string;
-	updated_at: string;
-	closed_at?: null;
-	author_association: string;
-	active_lock_reason?: null;
-	body: string;
-	reactions: Reactions;
-	timeline_url: string;
-	performed_via_github_app?: null;
-	state_reason?: null;
-}
-export interface User {
-	login: string;
-	id: number;
-	node_id: string;
-	avatar_url: string;
-	gravatar_id: string;
-	url: string;
-	html_url: string;
-	followers_url: string;
-	following_url: string;
-	gists_url: string;
-	starred_url: string;
-	subscriptions_url: string;
-	organizations_url: string;
-	repos_url: string;
-	events_url: string;
-	received_events_url: string;
-	type: string;
-	site_admin: boolean;
-}
-export interface LabelsEntity {
-	id: number;
-	node_id: string;
-	url: string;
-	name: string;
-	color: string;
-	default: boolean;
-	description: string;
-}
-export interface Reactions {
-	url: string;
-	total_count: number;
-	"+1": number;
-	"-1": number;
-	laugh: number;
-	hooray: number;
-	confused: number;
-	heart: number;
-	rocket: number;
-	eyes: number;
 }
 
 
@@ -201,11 +118,4 @@ export async function GetGithubIssues(env: Env, list: string): Promise<GameEntry
 	}
 
 	return issuesList;
-}
-
-export interface Env {
-	// If you set another name in wrangler.toml as the value for 'binding',
-	// replace "DB" with the variable name you defined.
-	DB: D1Database;
-	ACCESS_TOKEN: string | undefined;
 }

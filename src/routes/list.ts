@@ -1,4 +1,4 @@
-import { Env, GameEntry, LOG, Timestamp } from '../utils';
+import { Env, GameEntry, Timestamp } from '../types';
 
 export default async function (env: Env, req: Request, match: URLPatternURLPatternResult): Promise<Response> {
 	if (req.method != 'GET') {
