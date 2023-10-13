@@ -55,6 +55,7 @@ export interface IssueElement {
     timeline_url: string;
     performed_via_github_app?: null;
     state_reason?: null;
+    pull_request?: any;
 }
 
 export interface User {

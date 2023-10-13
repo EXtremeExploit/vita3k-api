@@ -56,7 +56,9 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 					'User-Agent': 'Vita3K API Worker'
 				}
 			}).then(r => r.json() as Promise<IssueElement[]>));
-			issues.push(...r);
+
+			const filteredIssues = r.filter((i) => typeof i.pull_request == 'undefined');
+			issues.push(...filteredIssues);
 			if (r.length != PER_PAGE) {
 				// we got less issues this page, so this is the last one
 				shouldGetMore = false;
@@ -90,7 +92,10 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 		};
 
 		const pages = await Promise.all(fetches);
-		pages.forEach(page => issues.push(...page));
+		pages.forEach(page => {
+			const filteredIssues = page.filter((i) => typeof i.pull_request == 'undefined');
+			issues.push(...filteredIssues);
+		});
 		LOG(`${issues.length} Issues were fetched across ${pages.length} pages`);
 	}
 
