@@ -33,6 +33,10 @@ export default {
 				updateTimestamp(env, list)
 			]);
 
+			if (ghIssues.length == 0)
+				return; // There was no activity in the list since last time
+
+
 			// Delete issues that updated
 			const deleteBatch: D1PreparedStatement[] = [];
 			ghIssues.forEach((i) => {

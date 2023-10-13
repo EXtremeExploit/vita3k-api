@@ -21,8 +21,7 @@ export default async function (env: Env, req: Request, _match: URLPatternURLPatt
             labels: [
                 (allLabels.filter((l) => l.name == list.name)).map((e) => e.label)
             ]
-        })
-        
+        });
     });
 
     return Response.json(output, {

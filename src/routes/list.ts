@@ -9,14 +9,18 @@ export default async function (env: Env, req: Request, match: URLPatternURLPatte
 		return Response.json('invalid list type', { status: 400 });
 	}
 
-	const listInfos = (await env.DB.prepare('SELECT * FROM list_info').all()).results as unknown as ListInfo[];
+	const [listInfosResult, listResult] = await env.DB.batch([
+		env.DB.prepare('SELECT * FROM list_info'),
+		// even if the list is invalid, this will return an empty list
+		env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ?').bind(match.pathname.groups.type)
+	]);
+
+	const listInfos = listInfosResult.results as unknown as ListInfo[];
+	const list = listResult.results as unknown as GameEntry[];
+
 	const listInfo = listInfos.find((l) => l.name == match.pathname.groups.type);
 	if (typeof listInfo == 'undefined')
 		return Response.json('invalid list type', { status: 400 });
-
-	const listResult = await env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ?').bind(listInfo.name).all();
-
-	const list = listResult.results as unknown as GameEntry[];
 
 	return Response.json({ date: listInfo.timestamp, list: list }, {
 		status: 200, headers: {
