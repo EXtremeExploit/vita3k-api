@@ -36,7 +36,7 @@ export default {
 			ghIssues.forEach((i) => {
 				deleteBatch.push(env.DB.prepare('DELETE FROM list WHERE issueId = ? AND type = ?').bind(i.number, list.name));
 			});
-			env.DB.batch(deleteBatch);
+			await env.DB.batch(deleteBatch);
 
 			const openIssues = ghIssues.filter((i) => i.state = 'open');
 
@@ -67,7 +67,7 @@ export default {
 				insertBatch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
 					.bind(list.name, title, titleId, status, color, issue.number));
 			});
-			env.DB.batch(insertBatch);
+			await env.DB.batch(insertBatch);
 		}
 	}
 };
