@@ -28,14 +28,12 @@ export default {
 
 			const labels = allLabels.filter((l) => l.name == list.name);
 
-			const [ghIssues, _] = await Promise.all([
-				GetGithubIssues(env, list.githubName, list.timestamp),
-				updateTimestamp(env, list)
-			]);
+			const ghIssues = await GetGithubIssues(env, list.githubName, list.timestamp),
 
 			if (ghIssues.length == 0)
 				return; // There was no activity in the list since last time
 
+			await updateTimestamp(env, list);
 
 			// Delete issues that updated
 			const deleteBatch: D1PreparedStatement[] = [];

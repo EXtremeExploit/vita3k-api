@@ -62,7 +62,7 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 		{
 			"name": "commercial", // Name of the list
 			"githubName": "Vita3K/compatibility", // Github owner/repo of the issue list
-			"timestamp": 1697056024, // UNIX time of the last update
+			"timestamp": 1697056024, // UNIX time of the last changes
 			"labels": [ // The labels that games should be marked with
 				"Playable",
 				"Ingame +",
@@ -93,7 +93,7 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 	* Returns
 	```json
 	{
-    	"date": 1697056810, // The date at which this list has been last updated (UNIX Time)
+    	"date": 1697056810, // The date at which this list has been last changed (UNIX Time)
     	"list": [
         	{
             	"name": "VVVVVV",
