@@ -14,3 +14,9 @@ CREATE TABLE `list_info` (
   `githubName` varchar(128) NOT NULL, -- Used internally to get github issues
   `timestamp` INTEGER NOT NULL DEFAULT 0
 );
+
+DROP TABLE IF EXISTS `labels`;
+CREATE TABLE `labels` (
+  `name` varchar(64) NOT NULL,
+  `label` varchar(64) NOT NULL
+);

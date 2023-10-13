@@ -21,6 +21,11 @@ export interface ListInfo {
     timestamp: number;
 }
 
+export interface LabelsList{
+    name: string;
+    label: string;
+}
+
 export interface IssueElement {
     url: string;
     repository_url: string;

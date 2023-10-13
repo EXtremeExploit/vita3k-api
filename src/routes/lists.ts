@@ -1,4 +1,4 @@
-import { Env, ListInfo } from '../types';
+import { Env, LabelsList, ListInfo } from '../types';
 
 export default async function (env: Env, req: Request, _match: URLPatternURLPatternResult) {
     if (req.method != 'GET') {
@@ -7,9 +7,25 @@ export default async function (env: Env, req: Request, _match: URLPatternURLPatt
         });
     }
 
-    let listsInfo = (await env.DB.prepare('SELECT * FROM list_info').all()).results as unknown as ListInfo[];
+    const [listInfosResult, labelsResult] = await env.DB.batch([
+        env.DB.prepare('SELECT * FROM list_info'),
+        env.DB.prepare('SELECT * FROM labels')
+    ]);
+    const listInfos = listInfosResult.results as unknown as ListInfo[];
+    const allLabels = labelsResult.results as unknown as LabelsList[];
 
-    return Response.json(listsInfo, {
+    const output: any = [];
+    listInfos.forEach(list => {
+        output.push({
+            ...list,
+            labels: [
+                (allLabels.filter((l) => l.name == list.name)).map((e) => e.label)
+            ]
+        })
+        
+    });
+
+    return Response.json(output, {
         status: 200, headers: {
             'content-type': 'application/json; charset=utf-8',
             'Access-Control-Allow-Origin': '*'

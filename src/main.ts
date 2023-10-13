@@ -1,6 +1,6 @@
 import { router } from './route';
 import { GetGithubIssues, LOG, updateTimestamp } from './utils';
-import { Env, GameEntry, ListInfo } from './types';
+import { Env, LabelsList, ListInfo } from './types';
 
 export default {
 	async fetch(request: Request, env: Env, ctx: any) {
@@ -14,58 +14,60 @@ export default {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
-		const listInfos = (await env.DB.prepare('SELECT * FROM list_info').all()).results as unknown as ListInfo[];
+		const [listInfosResult, labelsResult] = await env.DB.batch([
+			env.DB.prepare('SELECT * FROM list_info'),
+			env.DB.prepare('SELECT * FROM labels')
+		]);
+		const listInfos = listInfosResult.results as unknown as ListInfo[];
+		const allLabels = labelsResult.results as unknown as LabelsList[];
+
 
 		// Update the list of every list in the list_info table
 		for (const list of listInfos) {
-			LOG(`Caching ${list.name} (${list.githubName}) list...`);
+			LOG(`Caching ${list.name} (${list.githubName}) list since ${list.timestamp} UNIX Time...`);
 
-			const [ghList, cachedListResult, _] = await Promise.all([
-				GetGithubIssues(env, list.githubName),
-				env.DB.prepare('SELECT `name`,`titleId`,`status`,`color`,`issueId` FROM list WHERE type = ? ORDER BY titleId ASC, issueId ASC').bind(list.name).all(),
-				updateTimestamp(env, list)
-			]);
-			LOG(`Github list ${list.name} has ${ghList.length} entries`);
+			const labels = allLabels.filter((l) => l.name == list.name);
 
-			const cachedList = cachedListResult.results as unknown as GameEntry[];
+			const ghIssues = await GetGithubIssues(env, list.githubName, list.timestamp);
+			await updateTimestamp(env, list);
 
-			if (cachedList.length == ghList.length) {
-				// Only sort the github issues list as the cached list is already sorted by the query
-				ghList.sort((a, b) => {
-					if (a.titleId.toLowerCase() < b.titleId.toLowerCase()) return -1;
-					if (a.titleId.toLowerCase() > b.titleId.toLowerCase()) return 1;
-					return a.issueId - b.issueId; // This will NEVER be the same, its the primary key
-				});
-				// Order of elements should be EXACTLY the same, and the lists should be parallel
-				// Compare them in the for below
-
-				let areEqual = true;
-				for (let i = 0; i < ghList.length; i++) {
-					const ghIssue = ghList[i];
-					const cachedIssue = cachedList[i];
-
-					if (ghIssue.titleId != cachedIssue.titleId) { areEqual = false; break; }
-					if (ghIssue.name != cachedIssue.name) { areEqual = false; break; }
-					if (ghIssue.status != cachedIssue.status) { areEqual = false; break; }
-					if (ghIssue.issueId != cachedIssue.issueId) { areEqual = false; break; }
-					if (ghIssue.color != cachedIssue.color) { areEqual = false; break; }
-				}
-
-				if (areEqual) {
-					LOG('Lists are equal, nothing to do');
-					return;
-				} else {
-					LOG('Lists are not equal, reinserting all entries');
-				}
-			}
-
-			const batch: D1PreparedStatement[] = [];
-			batch.push(env.DB.prepare('DELETE FROM list WHERE type = ?').bind(list.name));
-			ghList.forEach((e) => {
-				batch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
-					.bind(list.name, e.name, e.titleId, e.status, e.color, e.issueId));
+			// Delete issues that updated
+			const deleteBatch: D1PreparedStatement[] = [];
+			ghIssues.forEach((i) => {
+				deleteBatch.push(env.DB.prepare('DELETE FROM list WHERE issueId = ? AND type = ?').bind(i.number, list.name));
 			});
-			await env.DB.batch(batch);
+			env.DB.batch(deleteBatch);
+
+			const openIssues = ghIssues.filter((i) => i.state = 'open');
+
+			const insertBatch: D1PreparedStatement[] = [];
+			const regexp = new RegExp(`^(?<title>.*) \\[(?<id>.*)\\]$`);
+			openIssues.forEach((issue) => {
+				const matches = regexp.exec(issue.title);
+				let title = issue.title;
+				let titleId = 'INVALID';
+				if (matches && matches.groups) {
+					title = matches.groups.title;
+					titleId = matches.groups.id;
+				}
+
+				let status = 'Unknown';
+				let color = '000000';
+				if (issue.labels != null) {
+					for (const label of issue.labels) {
+						const foundLabel = labels.find((l) => l.label == label.name);
+						if (typeof foundLabel != 'undefined') {
+							status = label.name;
+							color = label.color;
+							break;
+						}
+					}
+				}
+
+				insertBatch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
+					.bind(list.name, title, titleId, status, color, issue.number));
+			});
+			env.DB.batch(insertBatch);
 		}
 	}
 };
