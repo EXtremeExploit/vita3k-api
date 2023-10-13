@@ -3,7 +3,7 @@ main = "src/main.ts"
 compatibility_date = "2023-10-02"
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["*/1 * * * *"]
 
 # github access token goes here
 [vars]
