@@ -28,15 +28,18 @@ export default {
 
 			const labels = allLabels.filter((l) => l.name == list.name);
 
-			const ghIssues = await GetGithubIssues(env, list.githubName, list.timestamp);
-			await updateTimestamp(env, list);
+			const [ghIssues, _] = await Promise.all([
+				GetGithubIssues(env, list.githubName, list.timestamp),
+				updateTimestamp(env, list)
+			]);
 
 			// Delete issues that updated
 			const deleteBatch: D1PreparedStatement[] = [];
 			ghIssues.forEach((i) => {
 				deleteBatch.push(env.DB.prepare('DELETE FROM list WHERE issueId = ? AND type = ?').bind(i.number, list.name));
 			});
-			await env.DB.batch(deleteBatch);
+			if (deleteBatch.length > 0)
+				await env.DB.batch(deleteBatch);
 
 			const openIssues = ghIssues.filter((i) => i.state = 'open');
 
@@ -67,7 +70,8 @@ export default {
 				insertBatch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
 					.bind(list.name, title, titleId, status, color, issue.number));
 			});
-			await env.DB.batch(insertBatch);
+			if (insertBatch.length > 0)
+				await env.DB.batch(insertBatch);
 		}
 	}
 };
