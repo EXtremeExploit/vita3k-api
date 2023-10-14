@@ -33,7 +33,6 @@ export default {
 			if (ghIssues.length == 0)
 				return; // There was no activity in the list since last time
 
-			await updateTimestamp(env, list);
 
 			// Delete issues that updated
 			const deleteBatch: D1PreparedStatement[] = [];
@@ -74,6 +73,8 @@ export default {
 			});
 			if (insertBatch.length > 0)
 				await env.DB.batch(insertBatch);
+			await updateTimestamp(env, list);
+
 		}
 	}
 };
