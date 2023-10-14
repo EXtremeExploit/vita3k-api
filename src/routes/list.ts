@@ -22,7 +22,7 @@ export default async function (env: Env, req: Request, match: URLPatternURLPatte
 	if (typeof listInfo == 'undefined')
 		return Response.json('invalid list type', { status: 400 });
 
-	return Response.json({ date: listInfo.timestamp, list: list }, {
+	return new Response(JSON.stringify({ date: listInfo.timestamp, list: list }), {
 		status: 200, headers: {
 			'content-type': 'application/json; charset=utf-8',
 			'Access-Control-Allow-Origin': '*'
