@@ -95,7 +95,7 @@ export default {
 					.bind(list.name, title, titleId, status, color, issue.number));
 			});
 			if (updateBatch.length > 0)
-				env.DB.batch(updateBatch);
+				await env.DB.batch(updateBatch);
 		}
 	}
 };
