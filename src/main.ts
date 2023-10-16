@@ -26,9 +26,9 @@ export default {
 
 		const response = await router(env, request);
 
-		// Cache API respects Cache-Control headers. Setting s-max-age to 50
-		// will limit the response to be in cache for 50 seconds max
-		response.headers.append("Cache-Control", "s-maxage=50");
+		// Cache API respects Cache-Control headers. Setting s-max-age to 120
+		// will limit the response to be in cache for 120 seconds max
+		response.headers.append("Cache-Control", "s-maxage=120");
 		ctx.waitUntil(cache.put(cacheKey, response.clone()));
 
 		return response;
