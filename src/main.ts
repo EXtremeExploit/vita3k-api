@@ -1,12 +1,37 @@
 import { router } from './route';
-import { GetGithubIssues, LOG, updateTimestamp } from './utils';
+import { GetGithubIssues, LOG } from './utils';
 import { Env, LabelsList, ListInfo } from './types';
 
 export default {
 	async fetch(request: Request, env: Env, ctx: any) {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
-		return await router(env, request);
+
+
+		const cacheUrl = new URL(request.url);
+
+		// Construct the cache key from the cache URL
+		const cacheKey = new Request(cacheUrl.toString(), request);
+		const cache = caches.default;
+
+		// Check whether the value is already available in the cache
+		// if not, you will need to fetch it from origin, and store it in the cache
+		let cachedResponse = await cache.match(cacheKey);
+
+		if (cachedResponse) {
+			LOG(`Cache hit for URL: ${cacheUrl.toString()}`);
+			return cachedResponse;
+		}
+		LOG(`Cache miss for URL: ${cacheUrl.toString()}`);
+
+		const response = await router(env, request);
+
+		// Cache API respects Cache-Control headers. Setting s-max-age to 50
+		// will limit the response to be in cache for 50 seconds max
+		response.headers.append("Cache-Control", "s-maxage=50");
+		ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+		return response;
 	},
 
 	// We only have 1 cronjob so we can just run the thing, no need to check for anything
@@ -33,20 +58,18 @@ export default {
 			if (ghIssues.length == 0)
 				return; // There was no activity in the list since last time
 
-
+			const updateBatch: D1PreparedStatement[] = [];
 			// Delete issues that updated
-			const deleteBatch: D1PreparedStatement[] = [];
-			ghIssues.forEach((i) => {
-				deleteBatch.push(env.DB.prepare('DELETE FROM list WHERE issueId = ? AND type = ?').bind(i.number, list.name));
-			});
-			if (deleteBatch.length > 0)
-				await env.DB.batch(deleteBatch);
+			// Only delete issues if the last was updated at least once, else there wouldnt be any
+			if (list.timestamp != 0)
+				ghIssues.forEach((i) => {
+					updateBatch.push(env.DB.prepare('DELETE FROM list WHERE issueId = ? AND type = ?').bind(i.number, list.name));
+				});
 
-			const openIssues = ghIssues.filter((i) => i.state = 'open');
-
-			const insertBatch: D1PreparedStatement[] = [];
 			const regexp = new RegExp(`^(?<title>.*) \\[(?<id>.*)\\]$`);
-			openIssues.forEach((issue) => {
+			ghIssues.forEach((issue) => {
+				if (issue.state != 'open')
+					return;
 				const matches = regexp.exec(issue.title);
 				let title = issue.title;
 				let titleId = 'INVALID';
@@ -68,13 +91,11 @@ export default {
 					}
 				}
 
-				insertBatch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
+				updateBatch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
 					.bind(list.name, title, titleId, status, color, issue.number));
 			});
-			if (insertBatch.length > 0)
-				await env.DB.batch(insertBatch);
-			await updateTimestamp(env, list);
-
+			if (updateBatch.length > 0)
+				env.DB.batch(updateBatch);
 		}
 	}
 };

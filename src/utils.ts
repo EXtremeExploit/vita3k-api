@@ -1,10 +1,4 @@
-import { Env, GHListName, IssueElement, ListInfo } from "./types";
-
-
-export function UNIXTime(): number {
-	const secondsSinceUNIX = Math.floor(new Date().getTime() / 1000);
-	return secondsSinceUNIX;
-}
+import { Env, GHListName, IssueElement } from "./types";
 
 function GetLogDate() {
 	const d = new Date();
@@ -22,12 +16,6 @@ function GetLogDate() {
 export function LOG(txt: string) {
 	console.log(`${GetLogDate()} | ${txt}`);
 }
-
-export async function updateTimestamp(env: Env, list: ListInfo): Promise<void> {
-	await env.DB.prepare('UPDATE list_info SET timestamp = ? WHERE name = ?')
-		.bind(UNIXTime(), list.name).run();
-}
-
 
 export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: number): Promise<IssueElement[]> {
 	const PER_PAGE = 100;

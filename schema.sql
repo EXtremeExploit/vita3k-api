@@ -20,3 +20,10 @@ CREATE TABLE `labels` (
   `name` varchar(64) NOT NULL,
   `label` varchar(64) NOT NULL
 );
+
+DROP TRIGGER IF EXISTS `timestmap_update`;
+CREATE TRIGGER `timestmap_update` AFTER INSERT
+ON `list`
+BEGIN
+  UPDATE list_info SET timestamp = unixepoch() WHERE name = new.type;
+END;
