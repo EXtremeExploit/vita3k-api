@@ -11,7 +11,7 @@ export default {
 		const cacheUrl = new URL(request.url);
 
 		// Construct the cache key from the cache URL
-		const cacheKey = new Request(cacheUrl.toString(), request);
+		const cacheKey = new Request(cacheUrl.toString());
 		const cache = caches.default;
 
 		// Check whether the value is already available in the cache
