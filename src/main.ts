@@ -7,27 +7,22 @@ export default {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
-
-		const cacheUrl = new URL(request.url);
-
 		// Construct the cache key from the cache URL
-		const cacheKey = new Request(cacheUrl.toString());
 		const cache = caches.default;
+		const cacheKey = new Request(request.url);
 
 		// Check whether the value is already available in the cache
 		// if not, you will need to fetch it from origin, and store it in the cache
 		let cachedResponse = await cache.match(cacheKey);
 
 		if (cachedResponse) {
-			LOG(`Cache hit for URL: ${cacheUrl.toString()}`);
+			LOG(`Cache hit for URL: ${request.url}`);
 			return cachedResponse;
 		}
-		LOG(`Cache miss for URL: ${cacheUrl.toString()}`);
+		LOG(`Cache miss for URL: ${request.url}`);
 
 		const response = await router(env, request);
 
-		// Cache API respects Cache-Control headers. Setting s-max-age to 120
-		// will limit the response to be in cache for 120 seconds max
 		response.headers.append("Cache-Control", "s-maxage=120");
 		ctx.waitUntil(cache.put(cacheKey, response.clone()));
 
