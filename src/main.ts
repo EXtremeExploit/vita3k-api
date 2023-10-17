@@ -23,7 +23,7 @@ export default {
 
 		const response = await router(env, request);
 
-		response.headers.append("Cache-Control", "s-maxage=120");
+		response.headers.append("Cache-Control", "s-maxage=3600");
 		ctx.waitUntil(cache.put(cacheKey, response.clone()));
 
 		return response;
