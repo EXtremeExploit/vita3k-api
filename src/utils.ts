@@ -38,7 +38,7 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 		let i = 1;
 		while (shouldGetMore) {
 			LOG(`Getting page ${i} of ${ghlist}`);
-			let r = await (fetch(`https://api.github.com/repos/${ghlist}/issues?sort=updated&page=${i++}&per_page=${PER_PAGE}${since}`, {
+			let r = await (fetch(`https://api.github.com/repos/${ghlist}/issues?state=all&sort=updated&page=${i++}&per_page=${PER_PAGE}${since}`, {
 				headers: {
 					'Authorization': `Bearer ${ACCESS_TOKEN}`,
 					'User-Agent': 'Vita3K API Worker'
