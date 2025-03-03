@@ -9,6 +9,8 @@ crons = ["*/1 * * * *"]
 [vars]
 # ACCESS_TOKEN = "github access token"
 
+[observability]
+enabled = true
 
 [[d1_databases]]
 binding = "DB"
