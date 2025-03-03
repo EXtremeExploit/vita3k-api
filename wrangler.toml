@@ -1,6 +1,6 @@
 name = "vita3k-api"
 main = "src/main.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-11-11"
 
 [triggers]
 crons = ["*/1 * * * *"]
