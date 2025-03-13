@@ -4,7 +4,6 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 ## Requirements
 * npm
 * node
-* wrangler (`npm i -g wrangler`)
 
 ## Setup
 * Create a D1 database in cloudflare (dw, its free :D)
@@ -13,16 +12,18 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 * Change the configuration (`wrangler.toml`)
 	* **database_name:** Here goes the name of the database
 	* **database_id:** Put here the database id you copied from the step above
+* `npm install` to install wrangler CLI dependency
 
 * Once thats done, you can choose to run it either locally or on a cloudflare worker
 	### Locally
+    * **Even if the worker itself runs on your computer, the database doesnt**
 	* Uncomment the `ACCESS_TOKEN` line in `wrangler.toml` and change the string to be your access token
-	* Setup the databse schema: `wrangler d1 execute <database_name> --local --file=./schema.sql`
-	* run `wrangler dev --test-scheduled`
+	* Setup the databse schema: `npx wrangler d1 execute <database_name> --file=./schema.sql`
+	* run `npx wrangler dev --test-scheduled`
 		### CRON JOB WONT WORK, YOU WILL HAVE TO TRIGGER IT YOURSELF (`localhost:XXXXX/__scheduled`)
 	### Online Cloudflare worker
-	* Setup the databse schema: `wrangler d1 execute <database_name> --file=./schema.sql`
-	* Add base data into the database: `wrangler d1 execute <database_name> --file=./schema_insert.sql`
+	* Setup the databse schema: `npx wrangler d1 execute <database_name> --remote --file=./schema.sql`
+	* Add base data into the database: `npx wrangler d1 execute <database_name> --remote --file=./schema_insert.sql`
 	* run `npx wrangler deploy`
 	* It will ask you permission to use wranlger on cloudflare, click allow
 	* Now go to Settings > Variables > Enviroment Variables
