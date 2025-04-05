@@ -1,6 +1,7 @@
 name = "vita3k-api"
 main = "src/main.ts"
 compatibility_date = "2024-11-11"
+upload_source_maps = true
 
 [triggers]
 crons = ["*/1 * * * *"]
