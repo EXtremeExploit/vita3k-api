@@ -25,7 +25,7 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 	if (updated_at != 0) {
 		let since = '&since=';
 		// YYYY-MM-DDTHH:MM:SSZ
-		const d = new Date((updated_at - 15) * 1000); // Minus 15 seconds
+		const d = new Date((updated_at - 35) * 1000); // Minus 35 seconds. D1 can sometimes timeout and the timeouts are around 30-32 seconds long
 		const year = d.getUTCFullYear();
 		const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
 		const day = d.getUTCDate().toString().padStart(2, '0');
