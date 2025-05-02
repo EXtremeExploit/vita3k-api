@@ -4,6 +4,8 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 ## Requirements
 * npm
 * node
+* A GitHub access token, you can get one [here](https://github.com/settings/tokens)
+    * You only need to check the public_repo checkbox for it to work, no other box is needed
 
 ## Setup
 * Create a D1 database in cloudflare (dw, its free :D)
