@@ -3,7 +3,7 @@ import { awaitWithRetry, GetGithubIssues, LOG } from './utils';
 import { Env, LabelsList, ListInfo } from './types';
 
 export default {
-	async fetch(request: Request, env: Env, ctx: any) {
+	async fetch(request: Request, env: Env, ctx: FetchEvent) {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
@@ -30,7 +30,7 @@ export default {
 	},
 
 	// We only have 1 cronjob so we can just run the thing, no need to check for anything
-	async scheduled(event: ScheduledEvent, env: Env, ctx: any) {
+	async scheduled(event: ScheduledEvent, env: Env, ctx: ScheduledEvent) {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
