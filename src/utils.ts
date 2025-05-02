@@ -95,25 +95,30 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
  * @param fn Function pointer to the function to await for
  * @param awaitArgs Array of arguments to pass to the awaiting function
  * @param retries How many attempts
- * @param interval How often should it try for the function to resolve
+ * @param interval How many milliseconds are there between each attempt
  * @param errHandler What to do every time the await gets rejected
  * @returns The end result in case the function resolves correctly
  */
-export function awaitWithRetry(fn: (...args: any) => Promise<any>, awaitArgs: any[], retries: number, interval: number, errHandler: (err: unknown) => void) {
+export function awaitWithRetry<Args extends any[], ReturnType>(
+	fn: (...args: Args) => Promise<ReturnType>,
+	awaitArgs: Args,
+	retries: number,
+	interval: number,
+	errHandler: (err: unknown) => void
+): Promise<ReturnType> {
 	return new Promise((resolve, reject) => {
 		let attempts = retries;
 
 		async function attempt() {
-			if (!attempts) {
+			if (!attempts)
 				return reject(new Error('Ran out of tries.'));
-			}
 			try {
 				const ret = await fn(...awaitArgs);
 				resolve(ret);
 			} catch (err) {
-				errHandler(err)
+				errHandler(err);
 				attempts--;
-				setTimeout(attempt, interval)
+				setTimeout(attempt, interval);
 			}
 		}
 
