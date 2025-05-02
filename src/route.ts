@@ -2,7 +2,7 @@ import { Env } from './types';
 interface Route {
 	name: string; // name of the route, just for tracking
 	path: string; // path pattern for handler
-	handler: (env: Env, req: Request, match: URLPatternURLPatternResult) => Promise<Response>; // handler to handle request
+	handler: (env: Env, req: Request, match: URLPatternResult) => Promise<Response>; // handler to handle request
 }
 
 import index from './routes/index';

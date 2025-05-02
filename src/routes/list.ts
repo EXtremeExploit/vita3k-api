@@ -1,6 +1,6 @@
 import { Env, GameEntry, ListInfo } from '../types';
 
-export default async function (env: Env, req: Request, match: URLPatternURLPatternResult): Promise<Response> {
+export default async function (env: Env, req: Request, match: URLPatternResult): Promise<Response> {
 	if (req.method != 'GET') {
 		return Response.json('Method not allowed', { status: 405 });
 	}
