@@ -1,5 +1,5 @@
 import { router } from './route';
-import { GetGithubIssues, LOG } from './utils';
+import { awaitWithRetry, GetGithubIssues, LOG } from './utils';
 import { Env, LabelsList, ListInfo } from './types';
 
 export default {
@@ -34,6 +34,7 @@ export default {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
+		// No need to encapusate this one as if it fails, it doesnt matter, the list timestamp is unchanged and will be processed in the next schedule
 		const [listInfosResult, labelsResult] = await env.DB.batch([
 			env.DB.prepare('SELECT * FROM list_info'),
 			env.DB.prepare('SELECT * FROM labels')
@@ -89,8 +90,13 @@ export default {
 				updateBatch.push(env.DB.prepare('INSERT INTO list (`type`,`name`,`titleId`,`status`,`color`,`issueId`) VALUES (?,?,?,?,?,?)')
 					.bind(list.name, title, titleId, status, color, issue.number));
 			});
-			if (updateBatch.length > 0)
-				await env.DB.batch(updateBatch);
+			if (updateBatch.length > 0) {
+				// Retry the batch in case D1 fails, give 5 attempts and 1 second between each attempt
+				// Wish there was a better way but around once a week or twice per month D1 fails
+				await awaitWithRetry(env.DB.batch, [updateBatch], 5, 1000, (err) => {
+					console.warn(err);
+				});
+			}
 		}
 	}
 };
