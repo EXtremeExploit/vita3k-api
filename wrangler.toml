@@ -6,10 +6,6 @@ upload_source_maps = true
 [triggers]
 crons = ["*/1 * * * *"]
 
-# github access token goes here
-[vars]
-# ACCESS_TOKEN = "github access token"
-
 [observability]
 enabled = true
 

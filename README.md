@@ -19,7 +19,9 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 * Once thats done, you can choose to run it either locally or on a cloudflare worker
 	### Locally
     * **Even if the worker itself runs on your computer, the database doesnt**
-	* Uncomment the `ACCESS_TOKEN` line in `wrangler.toml` and change the string to be your access token
+    * Create a file named `.dev.vars` with the following content
+        * ```ACCESS_TOKEN=YOURTOKENHERE```
+        * **REPLACE `YOURTOKENHERE` WITH THE GITHUB ACCESS TOKEN YOU GOT FROM EARLIER**
 	* Setup the databse schema: `npx wrangler d1 execute <database_name> --file=./schema.sql`
 	* run `npx wrangler dev --test-scheduled`
 		### CRON JOB WONT WORK, YOU WILL HAVE TO TRIGGER IT YOURSELF (`localhost:XXXXX/__scheduled`)
