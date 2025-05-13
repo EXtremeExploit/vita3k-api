@@ -93,9 +93,10 @@ export default {
 			if (updateBatch.length > 0) {
 				// Retry the batch in case D1 fails, give 5 attempts and 1 second between each attempt
 				// Wish there was a better way but around once a week or twice per month D1 fails
-				ctx.waitUntil(awaitWithRetry(env.DB.batch, [updateBatch], 5, 1000, (err) => {
-					console.warn(err);
-				}));
+				// ctx.waitUntil(awaitWithRetry(env.DB.batch, [updateBatch], 5, 1000, (err) => {
+				// 	console.warn(err);
+				// }));
+				await env.DB.batch(updateBatch);
 			}
 		}
 	}
