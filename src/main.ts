@@ -22,19 +22,21 @@ export default {
 		await preChecks(env);
 		LOG(`Cache miss for URL: ${request.url}`);
 
-		const response = await router(env, request);
+		const result = await router(env, request);
 
-		response.headers.append("Cache-Control", "s-maxage=3600");
-		ctx.waitUntil(cache.put(cacheKey, response.clone()));
+		if (result.cache) {
+			result.response.headers.append("Cache-Control", "s-maxage=3600");
+			ctx.waitUntil(cache.put(cacheKey, result.response.clone()));
+		}
 
-		return response;
+		return result.response;
 	},
 
 	// We only have 1 cronjob so we can just run the thing, no need to check for anything
 	async scheduled(event, env, ctx) {
-        if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
+		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
-        await preChecks(env);
+		await preChecks(env);
 
 		// No need to encapusate this one as if it fails, it doesnt matter, the list timestamp is unchanged and will be processed in the next schedule
 		const [listInfosResult, labelsResult] = await env.DB.batch([
