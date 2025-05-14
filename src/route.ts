@@ -5,16 +5,20 @@ interface Route {
 	handler: (env: Env, req: Request, match: URLPatternResult) => Promise<Response>; // handler to handle request
 }
 
+import clear from './routes/clear';
 import index from './routes/index';
 import list from './routes/list';
 import lists from './routes/lists';
 import ping from './routes/ping';
+import setup from './routes/setup';
 
 const routes: Route[] = [
+	{ name: 'clear', path: '/clear', handler: clear },
 	{ name: 'index', path: '/', handler: index },
 	{ name: 'list', path: '/list/:type', handler: list },
 	{ name: 'lists', path: '/lists', handler: lists },
 	{ name: 'ping', path: '/ping', handler: ping },
+	{ name: 'setup', path: '/setup', handler: setup },
 ];
 
 export async function router(env: Env, req: Request) {

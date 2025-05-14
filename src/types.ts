@@ -3,6 +3,7 @@ export interface Env {
     // replace "DB" with the variable name you defined.
     DB: D1Database;
     ACCESS_TOKEN: string | undefined;
+    PASSWORD: string | undefined;
 }
 
 export interface GameEntry {

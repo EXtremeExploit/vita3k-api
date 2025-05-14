@@ -1,9 +1,9 @@
 import { router } from './route';
-import { awaitWithRetry, GetGithubIssues, LOG } from './utils';
+import { awaitWithRetry, GetGithubIssues, LOG, preChecks } from './utils';
 import { Env, LabelsList, ListInfo } from './types';
 
 export default {
-	async fetch(request: Request, env: Env, ctx: FetchEvent) {
+	async fetch(request, env, ctx) {
 		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
 
@@ -19,6 +19,7 @@ export default {
 			LOG(`Cache hit for URL: ${request.url}`);
 			return cachedResponse;
 		}
+		await preChecks(env);
 		LOG(`Cache miss for URL: ${request.url}`);
 
 		const response = await router(env, request);
@@ -30,9 +31,10 @@ export default {
 	},
 
 	// We only have 1 cronjob so we can just run the thing, no need to check for anything
-	async scheduled(event: ScheduledEvent, env: Env, ctx: ScheduledEvent) {
-		if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
+	async scheduled(event, env, ctx) {
+        if (env.ACCESS_TOKEN == null || typeof env.ACCESS_TOKEN == 'undefined')
 			throw 'ACCESS_TOKEN IS NEEDED';
+        await preChecks(env);
 
 		// No need to encapusate this one as if it fails, it doesnt matter, the list timestamp is unchanged and will be processed in the next schedule
 		const [listInfosResult, labelsResult] = await env.DB.batch([
@@ -100,4 +102,4 @@ export default {
 			}
 		}
 	}
-};
+} satisfies ExportedHandler<Env>;

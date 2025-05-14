@@ -22,20 +22,18 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
     * Create a file named `.dev.vars` with the following content
         * ```ACCESS_TOKEN=YOURTOKENHERE```
         * **REPLACE `YOURTOKENHERE` WITH THE GITHUB ACCESS TOKEN YOU GOT FROM EARLIER**
-	* Setup the databse schema: `npx wrangler d1 execute <database_name> --file=./schema.sql`
 	* run `npx wrangler dev --test-scheduled`
-		### CRON JOB WONT WORK, YOU WILL HAVE TO TRIGGER IT YOURSELF (`localhost:XXXXX/__scheduled`)
+		### CRON JOB WONT WORK, YOU WILL HAVE TO TRIGGER IT YOURSELF (`localhost:XXXXX/cdn-cgi/handler/scheduled`)
 	### Online Cloudflare worker
-	* Setup the databse schema: `npx wrangler d1 execute <database_name> --remote --file=./schema.sql`
-	* Add base data into the database: `npx wrangler d1 execute <database_name> --remote --file=./schema_insert.sql`
 	* run `npx wrangler deploy`
 	* It will ask you permission to use wranlger on cloudflare, click allow
 	* Now go to Settings > Variables > Enviroment Variables
-		* Click on **Edit Variables** and add a new one called `ACCESS_TOKEN`, and have the value be your github access token, encryption enabled
+		* Click on **Edit Variables** and add a new secret called `ACCESS_TOKEN`, and have the value be your github access token
 	* Now once you add the enviroment variable a deploy will happen, you will have an URL to the worker and test things out, list will update every minute
 
+* If you also want to change the passwords of the `setup` and `clear` endpoints, add another key-value pair below `ACCESS_TOKEN` with key `PASSWORD` and the value being the password you want to set, the endpoints have a default password of `"meow"`
 ## Endpoints
-
+* All endpoints are asuming the url is `vita3k-api.pedro.moe`
 ### `GET /ping`
 * Returns pong
 * Example:
@@ -121,3 +119,30 @@ Cloudflare worker for the cache service of the compatibility list of Vita3K
 	}
 	```
 	* **Note**: if `date` is `0`, that means the list was cleared and is scheduled to being repopulated in the next minute
+
+### `POST /clear`
+* Body (JSON)
+    * `password` The password for the endpoint
+* Clears all the lists, for repopulation in the next cron job, also sets the lists timestamp to 0
+* Example:
+    * Command
+    ```sh
+	curl -X POST 'http://vita3k-api.pedro.moe/clear' \
+      --header "Content-Type: application/json" \
+      --data '{"password":"meow"}'
+	```
+* Returns the D1 returned object with the stats of the query (changed rows, deleted rows, latency, etc)
+
+
+### `POST /setup`
+* Body (JSON)
+    * `password` The password for the endpoint
+* Deletes all the tables and recreates them for when the schema/inserts changes
+* Example:
+    * Command
+    ```sh
+	curl -X POST 'http://vita3k-api.pedro.moe/setup' \
+      --header "Content-Type: application/json" \
+      --data '{"password":"meow"}'
+	```
+* Returns `Ok!` if the DB got recreated correctly
