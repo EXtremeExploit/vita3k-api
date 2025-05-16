@@ -19,7 +19,6 @@ export default {
 			LOG(`Cache hit for URL: ${request.url}`);
 			return cachedResponse;
 		}
-		await preChecks(env);
 		LOG(`Cache miss for URL: ${request.url}`);
 
 		const result = await router(env, request);

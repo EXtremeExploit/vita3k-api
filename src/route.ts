@@ -1,4 +1,6 @@
 import { Env } from './types';
+import { preChecks } from './utils';
+
 interface Route {
 	name: string; // name of the route, just for tracking
 	path: string; // path pattern for handler
@@ -26,10 +28,13 @@ export async function router(env: Env, req: Request) {
 	for (const route of routes) {
 		const reg = new URLPattern({ pathname: route.path })
 		const match = reg.exec(req.url);
-		if (match) return {
-			response: await route.handler(env, req, match),
-			cache: route.cache
-		};
+		if (match) {
+			await preChecks(env);
+			return {
+				response: await route.handler(env, req, match),
+				cache: route.cache
+			};
+		}
 	}
 	return { response: Response.json('404! Page Not Found!', { status: 404 }), cache: true };
 }
