@@ -45,6 +45,11 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 				}
 			}).then(r => r.json() as Promise<IssueElement[]>));
 
+			if (!Array.isArray(r)) {
+				console.error("Github issue list is not an array.");
+				throw new Error(r);
+			}
+
 			const filteredIssues = r.filter((i) => typeof i.pull_request == 'undefined');
 			issues.push(...filteredIssues);
 			if (r.length != PER_PAGE) {
@@ -154,10 +159,10 @@ async function createListInfoSchema(env: Env) {
 async function createLabelsSchema(env: Env) {
 	return await env.DB.prepare(
 		'CREATE TABLE `labels` ( \
-  `name` varchar(64) NOT NULL,\
-  `label` varchar(64) NOT NULL,\
-  PRIMARY KEY(`name`, `label`),\
-  FOREIGN KEY(`name`) REFERENCES list_info(`name`)\
+  `name` varchar(64) NOT NULL, \
+  `label` varchar(64) NOT NULL, \
+  PRIMARY KEY(`name`, `label`), \
+  FOREIGN KEY(`name`) REFERENCES list_info(`name`) \
 )').run();
 }
 
@@ -226,7 +231,7 @@ function dbSetupInsertStatementsLabels(env: Env) {
 }
 
 
-export async function tableExists(env: Env, table: string) {
+async function tableExists(env: Env, table: string) {
 	const res = await env.DB.prepare('SELECT name FROM sqlite_master WHERE type="table" AND name=?')
 		.bind(table).run();
 
