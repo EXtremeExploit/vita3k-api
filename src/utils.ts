@@ -37,7 +37,6 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 		let shouldGetMore = true;
 		let i = 1;
 		while (shouldGetMore) {
-			LOG(`Getting page ${i} of ${ghlist}`);
 			let r = await (fetch(`https://api.github.com/repos/${ghlist}/issues?state=all&sort=updated&page=${i++}&per_page=${PER_PAGE}${since}`, {
 				headers: {
 					'Authorization': `Bearer ${ACCESS_TOKEN}`,
@@ -60,7 +59,7 @@ export async function GetGithubIssues(env: Env, ghlist: GHListName, updated_at: 
 
 		LOG(`${issues.length} Issues had activity in ${ghlist} since ${since}`);
 	} else {
-		LOG(`timestamp for list ${ghlist} is 0, getting all issues...`)
+		LOG(`timestamp for list ${ghlist} is 0, getting all issues...`);
 		// update_at is 0, so that means most likely the list is empty, get all pages of all open issues
 		// and even if there is some entries in the list, they will get deleted anyways
 		const numPagesReq = await fetch(`https://api.github.com/repos/${ghlist}`, {

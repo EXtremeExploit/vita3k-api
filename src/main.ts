@@ -16,10 +16,8 @@ export default {
 		let cachedResponse = await cache.match(cacheKey);
 
 		if (cachedResponse) {
-			LOG(`Cache hit for URL: ${request.url}`);
 			return cachedResponse;
 		}
-		LOG(`Cache miss for URL: ${request.url}`);
 
 		const result = await router(env, request);
 
@@ -48,8 +46,6 @@ export default {
 
 		// Update the list of every list in the list_info table
 		for (const list of listInfos) {
-			LOG(`Caching ${list.name} (${list.githubName}) list since ${list.timestamp} UNIX Time...`);
-
 			const labels = allLabels.filter((l) => l.name == list.name);
 
 			const ghIssues = await GetGithubIssues(env, list.githubName, list.timestamp);
